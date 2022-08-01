@@ -52,9 +52,6 @@ set_target_properties(
         PUBLIC_HEADER "${mjolnir_HEADERS}")
         target_include_directories(mjolnir_static PRIVATE .)
 endif()
-configure_file(mjolnir.pc mjolnir.pc @ONLY)
-
-add_subdirectory(examples)
 
 install(TARGETS mjolnir
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

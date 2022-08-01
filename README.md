@@ -1,8 +1,8 @@
 # Mjolnir
 
-**Mjolnir** is a new C++ visualization lib with only one single dependencies opencv. It's a lightweighted version of [thor](https://github.com/jinfagang/thor).
+**Mjolnir** is a new C++ visualization lib with only one single dependency opencv. It's a lightweighted version of [thor](https://github.com/jinfagang/thor).
 
-As the name shows, **mjolnir** is also the weapon (hammer) of thor. It purpose is replace thor as a **standalone, simple, and lightweighted** visualization lib in pure C++.
+As the name shows, **mjolnir** is the weapon (hammer) of Thor. It's purpose is replace thor as a **standalone, simple, and lightweighted** visualization lib in pure C++.
 
 
 ## Build
