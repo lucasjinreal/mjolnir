@@ -3,11 +3,12 @@ project(mjolnir VERSION 1.3.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS  "-fPIC")
 
-option(BUILD_STATIC "enable to build static mjolnir lib" OFF)
+option(BUILD_STATIC "enable to build static mjolnir lib" ON)
 option(DEBUG "Enable debug mode, for develop" ON)
 
 include(GNUInstallDirs)
 include_directories(${PROJECT_SOURCE_DIR}/include/)
+include_directories(include)
 
 if (APPLE)
     # for mac M1 
