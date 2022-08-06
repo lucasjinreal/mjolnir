@@ -14,25 +14,6 @@
 
 using namespace std;
 
-/**
- *
- * We start defining all useful structures here
- * currently lots of usage need declaration of structures
- * while some of them can be standardized and make it public
- * as a common usage
- *
- * such as:
- *
- * BoundingBoxes
- * HumanFaces
- * HumanPoses
- * ....
- *
- * (We do not using protobuf as there no need to add
- * more dependencies to mjolnir)
- *
- */
-
 namespace mjolnir {
 enum BoxFormat {
   XYXY,
@@ -67,25 +48,25 @@ struct InstanceSegmentation {
 struct Box {
   // left, top, right, bottom
   // left top is the origin
-  int top;
-  int left;
-  int w;
-  int h;
+  float top;
+  float left;
+  float w;
+  float h;
 
   // box score, only for prediction
   float score;
   // label index
   int idx;
 
-  int xmin;
-  int ymin;
-  int xmax;
-  int ymax;
+  float xmin;
+  float ymin;
+  float xmax;
+  float ymax;
 
   BoxFormat format;
 
   Box() {}
-  Box(int a, int b, int c, int d, int format = BoxFormat::XYXY) {
+  Box(float a, float b, float c, float d, int format = BoxFormat::XYXY) {
     switch (format) {
     case XYXY:
       xmin = a;

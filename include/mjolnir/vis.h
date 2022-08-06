@@ -54,17 +54,18 @@ cv::Mat createAlpha(cv::Mat &src);
 int addAlpha(cv::Mat &src, cv::Mat &dst, cv::Mat &alpha);
 
 // draw detections
-cv::Mat VisualizeDetection(cv::Mat &img, vector<vector<float>> detections,
-                           vector<string> classes_names,
-                           bool enable_mask = true,
-                           float confidence_threshold = 0.02,
-                           bool normalized = false);
+cv::Mat VisualizeDet(cv::Mat &img, vector<vector<float>> detections,
+                     vector<string> classes_names, bool enable_mask = true,
+                     float confidence_threshold = 0.02,
+                     bool normalized = false);
 
-cv::Mat VisualizeDetection(cv::Mat &img, vector<mjolnir::Box> detections,
-                           vector<string> classes_names,
-                           bool enable_mask = true,
-                           float confidence_threshold = 0.02,
-                           bool normalized = false);
+cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
+                     vector<string> classes_names,
+                     const vector<cv::Scalar> *colors = nullptr,
+                     const float line_thickness = 1,
+                     const float font_scale = 0.4, bool enable_mask = true,
+                     float confidence_threshold = 0.02,
+                     bool normalized = false);
 
 cv::Mat VisualizeDetectionStyleDetectron2(cv::Mat &img,
                                           vector<mjolnir::Box> detections,

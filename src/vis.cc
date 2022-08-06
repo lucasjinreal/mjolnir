@@ -264,9 +264,9 @@ void renderHumanPoseSimple(std::vector<HumanPose> &poses, cv::Mat &image) {
 }
 
 // Draw boxes
-cv::Mat VisualizeDetection(cv::Mat &img, vector<vector<float>> detections,
-                           vector<string> classes_names, bool enable_mask,
-                           float confidence_threshold, bool normalized) {
+cv::Mat VisualizeDet(cv::Mat &img, vector<vector<float>> detections,
+                     vector<string> classes_names, bool enable_mask,
+                     float confidence_threshold, bool normalized) {
   // for visualize
   const int font = cv::FONT_HERSHEY_TRIPLEX;
   const float font_scale = 0.6;
@@ -322,14 +322,17 @@ cv::Mat VisualizeDetection(cv::Mat &img, vector<vector<float>> detections,
   return combined;
 }
 
-cv::Mat VisualizeDetection(cv::Mat &img, vector<mjolnir::Box> detections,
-                           vector<string> classes_names, bool enable_mask,
-                           float confidence_threshold, bool normalized) {
-  // for visualize
+cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
+                     vector<string> classes_names,
+                     const vector<cv::Scalar> *colors,
+                     const float line_thickness, const float font_scale,
+                     bool enable_mask, float confidence_threshold,
+                     bool normalized) {
+
   const int font = cv::FONT_HERSHEY_SIMPLEX;
-  const float font_scale = 0.6;
-  const int font_thickness = 2;
+  const int font_thickness = 1;
   cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC3);
+
   for (int i = 0; i < detections.size(); ++i) {
     mjolnir::Box box = detections[i];
     box.to_xyxy();
@@ -348,23 +351,31 @@ cv::Mat VisualizeDetection(cv::Mat &img, vector<mjolnir::Box> detections,
         pt2.y = box.ymax;
       }
 
-      cv::Scalar u_c = gen_unique_color_cv(box.idx);
+      cv::Scalar u_c;
+      if (colors != nullptr) {
+        u_c = (*colors)[box.idx];
+      } else {
+        u_c = gen_unique_color_cv(box.idx + 8);
+      }
+
       cv::rectangle(img, pt1, pt2, u_c, 2, 8, 0);
-      cv::rectangle(mask, pt1, pt2, u_c, cv::FILLED, 0);
+      if (enable_mask) {
+        cv::rectangle(mask, pt1, pt2, u_c, cv::FILLED, 0);
+      }
 
       char score_str[256];
-      sprintf(score_str, "%.2f", score);
+      sprintf(score_str, "%.1f", score);
       std::string label_text = classes_names[box.idx] + " " + string(score_str);
-      int base_line = 0;
-      cv::Point text_origin = cv::Point(pt1.x - 2, pt1.y - 3);
+
+      int base_line = 4;
+      cv::Point text_origin = cv::Point(pt1.x + 2, pt1.y - base_line);
       cv::Size text_size = cv::getTextSize(label_text, font, font_scale,
                                            font_thickness, &base_line);
-      cv::rectangle(img, cv::Point(text_origin.x, text_origin.y + 5),
-                    cv::Point(text_origin.x + text_size.width,
-                              text_origin.y - text_size.height - 5),
-                    u_c, -1, 0);
+      cv::rectangle(
+          mask, cv::Point(pt1.x, text_origin.y - text_size.height - base_line),
+          cv::Point(text_origin.x + text_size.width + 2, pt1.y), u_c, -1, 0);
       cv::putText(img, label_text, text_origin, font, font_scale,
-                  cv::Scalar(255, 255, 255), font_thickness);
+                  cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
     }
   }
   cv::Mat combined;

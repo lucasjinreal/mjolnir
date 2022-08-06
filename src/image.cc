@@ -107,7 +107,7 @@ cv::Mat resizeAlongShortest(cv::Mat img, int target_w, int target_h) {
   left = floor(delta_w / 2);
   right = delta_w - floor(delta_w / 2);
   cv::copyMakeBorder(intermediateImg, outputImg, top, bottom, left, right,
-                     cv::BORDER_CONSTANT, (0, 0, 0));
+                     cv::BORDER_CONSTANT);
   return outputImg;
 }
 

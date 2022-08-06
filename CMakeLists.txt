@@ -8,7 +8,7 @@ option(DEBUG "Enable debug mode, for develop" ON)
 
 include(GNUInstallDirs)
 include_directories(${PROJECT_SOURCE_DIR}/include/)
-include_directories(include)
+include_directories(include/mjolnir)
 
 if (APPLE)
     # for mac M1 
