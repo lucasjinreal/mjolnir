@@ -2,6 +2,7 @@
 #pragma once
 
 #include <opencv2/core/mat.hpp>
+#include <opencv2/highgui.hpp>
 #include <string>
 #include <vector>
 
@@ -66,6 +67,7 @@ public:
   explicit ImageSourceIter(std::string source);
   ~ImageSourceIter();
   Item next();
+  int waitKey();
 };
 
 template <class Item> ImageSourceIter<Item>::ImageSourceIter(string source) {
@@ -112,10 +114,20 @@ template <class Item> Item ImageSourceIter<Item>::next() {
     // we have only 1 item
     this->ok = false;
     cv::Mat a = this->item_pool[this->crt];
-    std::cout << this->crt << ", " << this->item_pool.size();
     return a;
   } else if (this->mode == IterMode::DIR) {
     std::cout << "not supported now!!\n";
+  }
+}
+
+template <class Item> int ImageSourceIter<Item>::waitKey() {
+  if (this->is_video_mode) {
+    int k = cv::waitKey(1);
+    if (k == 27 || k == 113) {
+      exit(0);
+    }
+  } else {
+    cv::waitKey(0);
   }
 }
 
