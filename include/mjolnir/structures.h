@@ -9,7 +9,7 @@
 #ifdef __APPLE__
 #include "opencv2/core.hpp"
 #else
-#include "opencv2/cv.hpp"
+#include "opencv2/opencv.hpp"
 #endif
 
 using namespace std;

@@ -1,7 +1,5 @@
-cmake_minimum_required(VERSION 3.5)
-project(mjolnir VERSION 1.3.0 LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS  "-fPIC")
+cmake_minimum_required(VERSION 3.8)
+# project(mjolnir)
 
 option(BUILD_STATIC "enable to build static mjolnir lib" ON)
 option(DEBUG "Enable debug mode, for develop" ON)
