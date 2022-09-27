@@ -1,8 +1,5 @@
 
 #pragma once
-
-#include <opencv2/core/mat.hpp>
-#include <opencv2/highgui.hpp>
 #include <string>
 #include <vector>
 
@@ -10,11 +7,10 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/video.hpp"
 #include "opencv2/videoio.hpp"
+#include <opencv2/core.hpp>
 
 #include "./file_io.h"
 
-using cv::imread;
-using cv::VideoCapture;
 using std::string;
 using std::vector;
 
@@ -117,6 +113,9 @@ template <class Item> Item ImageSourceIter<Item>::next() {
     return a;
   } else if (this->mode == IterMode::DIR) {
     std::cout << "not supported now!!\n";
+    return cv::Mat::zeros(4, 4, CV_32F);
+  } else {
+    return cv::Mat::zeros(4, 4, CV_32F);
   }
 }
 
@@ -129,6 +128,7 @@ template <class Item> int ImageSourceIter<Item>::waitKey() {
   } else {
     cv::waitKey(0);
   }
+  return 0;
 }
 
 } // namespace iter
