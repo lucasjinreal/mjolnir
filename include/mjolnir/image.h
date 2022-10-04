@@ -8,7 +8,6 @@
 #include "opencv2/video.hpp"
 #include "opencv2/videoio.hpp"
 #include <opencv2/core.hpp>
-
 #include "./file_io.h"
 
 using std::string;
