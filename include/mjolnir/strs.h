@@ -28,18 +28,34 @@
 #ifndef _T_STRING_H
 #define _T_STRING_H
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 using namespace std;
 
 namespace thor {
 namespace str_util {
+
+template <typename... Args>
+std::string string_format(const std::string &format, Args... args) {
+  int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) +
+               1; // Extra space for '\0'
+  if (size_s <= 0) {
+    throw std::runtime_error("Error during formatting.");
+  }
+  auto size = static_cast<size_t>(size_s);
+  std::unique_ptr<char[]> buf(new char[size]);
+  std::snprintf(buf.get(), size, format.c_str(), args...);
+  return std::string(buf.get(),
+                     buf.get() + size - 1); // We don't want the '\0' inside
+}
 
 inline void SplitString(const std::string &s, std::vector<std::string> &v,
                         const std::string &c) {
