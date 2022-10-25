@@ -240,7 +240,13 @@ void renderHumanPoseSimple(std::vector<HumanPose> &poses, cv::Mat &image) {
       {1, 8}, {8, 9},  {9, 10},  {1, 11}, {11, 12}, {12, 13},
       {1, 0}, {0, 14}, {14, 16}, {0, 15}, {15, 17}};
   const cv::Point2f absentKeypoint(-1.0f, -1.0f);
+
   for (auto &pose : poses) {
+
+    for (int i = 0; i < pose.keypoints.size(); ++i) {
+      circle(image, pose.keypoints[i], 8, Scalar(0, 255, 255), -1);
+    }
+
     for (const auto &limbKeypointsId : limbKeypointsIds) {
       std::pair<cv::Point2f, cv::Point2f> limbKeypoints(
           pose.keypoints[limbKeypointsId.first],
@@ -250,7 +256,43 @@ void renderHumanPoseSimple(std::vector<HumanPose> &poses, cv::Mat &image) {
         continue;
       }
       cv::line(image, limbKeypoints.first, limbKeypoints.second,
-               Scalar(255, 255, 255), 1);
+               Scalar(255, 255, 255), 2);
+    }
+    if (pose.pose_id != -1) {
+      // we draw this id
+      Box b = pose.to_box();
+      cv::putText(image, to_string(pose.pose_id), Point2f(b.xmin, b.ymin),
+                  cv::FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 255, 255));
+      cv::rectangle(image, Point2f(b.xmin, b.ymin), Point2f(b.xmax, b.ymax),
+                    Scalar(255, 255, 255), 1);
+    }
+  }
+}
+
+void renderPoseCoco17(std::vector<HumanPose> &poses, cv::Mat &image) {
+  const std::vector<std::pair<int, int>> limbKeypointsIds = {
+      {16, 14}, {14, 12}, {17, 15}, {15, 13}, {12, 13}, {6, 12}, {7, 13},
+      {6, 7},   {6, 8},   {7, 9},   {8, 10},  {9, 11},  {2, 3},  {1, 2},
+      {1, 3},   {2, 4},   {3, 5},   {4, 6},   {5, 7},
+  };
+  const cv::Point2f absentKeypoint(-1.0f, -1.0f);
+
+  for (auto &pose : poses) {
+
+    for (int i = 0; i < pose.keypoints.size(); ++i) {
+      circle(image, pose.keypoints[i], 8, Scalar(0, 255, 255), -1);
+    }
+
+    for (const auto &limbKeypointsId : limbKeypointsIds) {
+      std::pair<cv::Point2f, cv::Point2f> limbKeypoints(
+          pose.keypoints[limbKeypointsId.first-1],
+          pose.keypoints[limbKeypointsId.second-1]);
+      if (limbKeypoints.first == absentKeypoint ||
+          limbKeypoints.second == absentKeypoint) {
+        continue;
+      }
+      cv::line(image, limbKeypoints.first, limbKeypoints.second,
+               Scalar(255, 255, 255), 3);
     }
     if (pose.pose_id != -1) {
       // we draw this id

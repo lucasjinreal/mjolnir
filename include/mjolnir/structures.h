@@ -168,13 +168,9 @@ struct Detection {
 struct HumanPose {
   std::vector<cv::Point2f> keypoints;
   float score;
-  // semantic pose type such as:
-  // 1. waving hands; 2. stop; 3. turn left; 4. turn right
-  // 5. follow me; 0. null
   int pose_type;
   // indicates same pose through video series, using for pose tracking
   int pose_id = -1;
-  // if confirm it is face, this flag will on
   bool is_face = false;
 
   HumanPose(
