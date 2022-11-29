@@ -105,6 +105,7 @@ cv::Mat VisualizeLanes(cv::Mat &img, const vector<vector<cv::Point>> &lanes,
                        const bool guide_line = true);
 void renderHumanPose(std::vector<HumanPose> &poses, cv::Mat &image);
 void renderHumanPoseSimple(std::vector<HumanPose> &poses, cv::Mat &image);
+void renderPoseCoco17(std::vector<HumanPose> &poses, cv::Mat &image);
 
 } // namespace vis
 } // namespace mjolnir

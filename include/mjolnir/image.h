@@ -4,13 +4,12 @@
 #include <string>
 #include <vector>
 
+#include "./file_io.h"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/opencv.hpp"
 #include "opencv2/video.hpp"
 #include "opencv2/videoio.hpp"
 #include <opencv2/core.hpp>
-
-#include "./file_io.h"
 
 using std::string;
 using std::vector;
@@ -106,6 +105,9 @@ template <class Item> Item ImageSourceIter<Item>::next() {
   if (this->mode == IterMode::VIDEO) {
     cv::Mat a;
     this->cap >> a;
+    if (a.empty()) {
+      this->ok = false;
+    }
     return a;
   } else if (this->mode == IterMode::IMAGE) {
     // we have only 1 item

@@ -31,36 +31,24 @@ endif ()
 file(GLOB_RECURSE mjolnir_SRCS "src/*.cpp" "src/*.cc")
 file(GLOB_RECURSE mjolnir_HEADERS "include/*.h" "include/*.hpp")
 
-add_library(mjolnir SHARED ${mjolnir_SRCS} ${mjolnir_HEADERS})
 if (BUILD_STATIC)
-    add_library(mjolnir_static STATIC ${mjolnir_SRCS} ${mjolnir_HEADERS})
+    add_library(mjolnir STATIC ${mjolnir_SRCS} ${mjolnir_HEADERS})
+else()
+    add_library(mjolnir SHARED ${mjolnir_SRCS} ${mjolnir_HEADERS})
 endif()
 
 target_link_libraries(mjolnir ${OpenCV_LIBS})
+target_compile_options(mjolnir PUBLIC -frtti)
 
 set_target_properties(
-        mjolnir
-        PROPERTIES
-        PUBLIC_HEADER "${mjolnir_HEADERS}")
+    mjolnir
+    PROPERTIES
+    PUBLIC_HEADER "${mjolnir_HEADERS}")
 target_include_directories(mjolnir PRIVATE .)
-
-if (BUILD_STATIC) 
-set_target_properties(
-        mjolnir_static
-        PROPERTIES
-        PUBLIC_HEADER "${mjolnir_HEADERS}")
-        target_include_directories(mjolnir_static PRIVATE .)
-endif()
 
 install(TARGETS mjolnir
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/mjolnir)
-if (BUILD_STATIC)
-install(TARGETS mjolnir_static
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/mjolnir)
-endif()
 install(FILES include/mjolnir.pc
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
