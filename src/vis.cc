@@ -1,4 +1,5 @@
 #include "vis.h"
+#include <opencv2/imgproc.hpp>
 
 namespace mjolnir {
 namespace vis {
@@ -11,7 +12,7 @@ RGBA gen_unique_color(int idx, bool is_track, double hue_step, float alpha) {
     idx = idx % track_size;
   }
   float h = idx * hue_step - (int)(idx * hue_step);
-  double v = 1.0 - (int(idx * hue_step) % 4) / 5.;
+  double v = 1.0 - (int(idx * hue_step) % 6) / 5.;
 
   RGBA rgba;
   hsv2rgb(rgba, h, 1, v);
@@ -323,15 +324,18 @@ cv::Mat VisualizeDet(cv::Mat &img, vector<vector<float>> detections,
 }
 
 cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
-                     vector<string> classes_names,
+                     vector<string> classes_names, bool enable_mask,
                      const vector<cv::Scalar> *colors,
                      const float line_thickness, const float font_scale,
-                     bool enable_mask, float confidence_threshold,
-                     bool normalized) {
+                     float confidence_threshold, bool normalized) {
 
   const int font = cv::FONT_HERSHEY_SIMPLEX;
   const int font_thickness = 1;
-  cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC3);
+
+  cv::Mat mask;
+  if (enable_mask) {
+    mask = cv::Mat::zeros(img.size(), CV_8UC3);
+  }
 
   for (int i = 0; i < detections.size(); ++i) {
     mjolnir::Box box = detections[i];
@@ -357,31 +361,44 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
       } else {
         u_c = gen_unique_color_cv(box.idx + 8);
       }
-
-      cv::rectangle(img, pt1, pt2, u_c, 2, 8, 0);
+      cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_AA, 0);
       if (enable_mask) {
         cv::rectangle(mask, pt1, pt2, u_c, cv::FILLED, 0);
       }
 
-      char score_str[256];
-      sprintf(score_str, "%.1f", score);
-      std::string label_text = classes_names[box.idx] + " " + string(score_str);
+      // CV_FONT_HERSHEY_DUPLEX
 
+      char score_str[256];
+      snprintf(score_str, sizeof(score_str), "%.1f", score * 100);
+      std::string label_text =
+          classes_names[box.idx] + " " + string(score_str) + "%";
       int base_line = 4;
       cv::Point text_origin = cv::Point(pt1.x + 2, pt1.y - base_line);
       cv::Size text_size = cv::getTextSize(label_text, font, font_scale,
                                            font_thickness, &base_line);
-      cv::rectangle(
-          mask, cv::Point(pt1.x, text_origin.y - text_size.height - base_line),
-          cv::Point(text_origin.x + text_size.width + 2, pt1.y), u_c, -1, 0);
+      if (enable_mask) {
+        cv::rectangle(
+            mask,
+            cv::Point(pt1.x, text_origin.y - text_size.height - base_line),
+            cv::Point(text_origin.x + text_size.width + 2, pt1.y), u_c, -1, 0);
+      } else {
+        cv::rectangle(
+            img, cv::Point(pt1.x, text_origin.y - text_size.height - base_line),
+            cv::Point(text_origin.x + text_size.width + 2, pt1.y), u_c, -1, 0);
+      }
       cv::putText(img, label_text, text_origin, font, font_scale,
                   cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
     }
   }
-  cv::Mat combined;
-  cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
-  // maybe combine a mask img back later
-  return combined;
+
+  if (enable_mask) {
+    // cv::Mat combined;
+    cv::addWeighted(img, 0.8, mask, 0.6, 0.6, img);
+    // maybe combine a mask img back later
+    return img;
+  } else {
+    return img;
+  }
 }
 
 cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,

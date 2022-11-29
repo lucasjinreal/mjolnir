@@ -60,10 +60,10 @@ cv::Mat VisualizeDet(cv::Mat &img, vector<vector<float>> detections,
                      bool normalized = false);
 
 cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
-                     vector<string> classes_names,
+                     vector<string> classes_names, bool enable_mask = false,
                      const vector<cv::Scalar> *colors = nullptr,
                      const float line_thickness = 1,
-                     const float font_scale = 0.4, bool enable_mask = true,
+                     const float font_scale = 0.4,
                      float confidence_threshold = 0.02,
                      bool normalized = false);
 

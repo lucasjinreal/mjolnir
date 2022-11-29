@@ -1,5 +1,6 @@
 
 #pragma once
+#include <opencv2/imgcodecs.hpp>
 #include <string>
 #include <vector>
 
@@ -112,8 +113,13 @@ template <class Item> Item ImageSourceIter<Item>::next() {
     cv::Mat a = this->item_pool[this->crt];
     return a;
   } else if (this->mode == IterMode::DIR) {
-    std::cout << "not supported now!!\n";
-    return cv::Mat::zeros(4, 4, CV_32F);
+    cv::Mat a = cv::imread(this->item_str_pool[this->crt]);
+    this->crt += 1;
+    if (this->crt >= this->item_str_pool.size()) {
+      this->ok = false;
+      return;
+    }
+    return a;
   } else {
     return cv::Mat::zeros(4, 4, CV_32F);
   }
