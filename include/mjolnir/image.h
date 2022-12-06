@@ -119,7 +119,7 @@ template <class Item> Item ImageSourceIter<Item>::next() {
     this->crt += 1;
     if (this->crt >= this->item_str_pool.size()) {
       this->ok = false;
-      return;
+      return cv::Mat::zeros(4, 4, CV_32F);
     }
     return a;
   } else {

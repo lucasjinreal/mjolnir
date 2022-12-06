@@ -286,8 +286,8 @@ void renderPoseCoco17(std::vector<HumanPose> &poses, cv::Mat &image) {
 
     for (const auto &limbKeypointsId : limbKeypointsIds) {
       std::pair<cv::Point2f, cv::Point2f> limbKeypoints(
-          pose.keypoints[limbKeypointsId.first-1],
-          pose.keypoints[limbKeypointsId.second-1]);
+          pose.keypoints[limbKeypointsId.first - 1],
+          pose.keypoints[limbKeypointsId.second - 1]);
       if (limbKeypoints.first == absentKeypoint ||
           limbKeypoints.second == absentKeypoint) {
         continue;
@@ -375,9 +375,7 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
   const int font_thickness = 1;
 
   cv::Mat mask;
-  if (enable_mask) {
-    mask = cv::Mat::zeros(img.size(), CV_8UC3);
-  }
+  mask = cv::Mat::zeros(img.size(), CV_8UC3);
 
   for (int i = 0; i < detections.size(); ++i) {
     mjolnir::Box box = detections[i];
@@ -401,7 +399,7 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
       if (colors != nullptr) {
         u_c = (*colors)[box.idx];
       } else {
-        u_c = gen_unique_color_cv(box.idx + 8);
+        u_c = gen_unique_color_cv(box.idx + 5);
       }
       cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_AA, 0);
       if (enable_mask) {
@@ -411,36 +409,26 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
       // CV_FONT_HERSHEY_DUPLEX
 
       char score_str[256];
-      snprintf(score_str, sizeof(score_str), "%.1f", score * 100);
-      std::string label_text =
-          classes_names[box.idx] + " " + string(score_str) + "%";
-      int base_line = 4;
-      cv::Point text_origin = cv::Point(pt1.x + 2, pt1.y - base_line);
+      snprintf(score_str, sizeof(score_str), "%.1f", score);
+      std::string label_text = classes_names[box.idx] + " " + string(score_str);
+      const int padding_y = 4;
+      const int padding_x = 2;
+      int base_line = 0;
       cv::Size text_size = cv::getTextSize(label_text, font, font_scale,
                                            font_thickness, &base_line);
-      if (enable_mask) {
-        cv::rectangle(
-            mask,
-            cv::Point(pt1.x, text_origin.y - text_size.height - base_line),
-            cv::Point(text_origin.x + text_size.width + 2, pt1.y), u_c, -1, 0);
-      } else {
-        cv::rectangle(
-            img, cv::Point(pt1.x, text_origin.y - text_size.height - base_line),
-            cv::Point(text_origin.x + text_size.width + 2, pt1.y), u_c, -1, 0);
-      }
+      cv::Point text_origin =
+          cv::Point(pt1.x + padding_x, pt1.y - padding_y); // bottom_left
+
+      cv::rectangle(
+          mask, cv::Point(pt1.x, pt1.y - text_size.height - 2*padding_y),
+          cv::Point(text_origin.x + text_size.width + padding_x, pt1.y), u_c, -1,
+          0);
       cv::putText(img, label_text, text_origin, font, font_scale,
                   cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
     }
   }
-
-  if (enable_mask) {
-    // cv::Mat combined;
-    cv::addWeighted(img, 0.8, mask, 0.6, 0.6, img);
-    // maybe combine a mask img back later
-    return img;
-  } else {
-    return img;
-  }
+  cv::addWeighted(img, 0.8, mask, 0.8, 0.8, img);
+  return img;
 }
 
 cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,
