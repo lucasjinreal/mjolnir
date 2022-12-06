@@ -427,7 +427,7 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
                   cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
     }
   }
-  cv::addWeighted(img, 0.8, mask, 0.8, 0.8, img);
+  cv::addWeighted(img, 0.9, mask, 0.9, 0.5, img);
   return img;
 }
 
