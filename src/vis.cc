@@ -762,6 +762,14 @@ cv::Mat VisualizeDetectionStyleDetectron2(cv::Mat &img,
   return combined;
 }
 
+void VisTextInfos(cv::Mat &img, const vector<std::string> txts,
+                  const cv::Point start_pt) {
+  for (int i = 0; i < txts.size(); ++i) {
+    cv::putText(img, txts[i], cv::Point(start_pt.x, start_pt.y + i * 20),
+                cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(252, 0, 0), 1,
+                cv::LINE_AA);
+  }
+}
 /////////////////////////// Visualize Lanes ////////////////////
 cv::Mat VisualizeLanes(cv::Mat &img, const vector<vector<cv::Point>> &lanes,
                        const vector<cv::Scalar> *colors,

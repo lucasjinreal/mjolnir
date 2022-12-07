@@ -75,7 +75,8 @@ template <class Item> ImageSourceIter<Item>::ImageSourceIter(string source) {
   if (thor::os::isfile(source)) {
     // judge if it's video or image file
     if (thor::os::suffix(source) == "mp4" ||
-        thor::os::suffix(source) == "avi") {
+        thor::os::suffix(source) == "avi" ||
+        thor::os::suffix(source) == "flv") {
       this->is_video_mode = true;
       this->mode = IterMode::VIDEO;
       auto res = this->cap.open(source);

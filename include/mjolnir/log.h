@@ -137,7 +137,6 @@ public:
   }
 };
 
-#ifdef WNN_TIMER
 #define TIMER_START(_X)                                                        \
   uint64_t _X##_start;                                                         \
   do {                                                                         \
@@ -156,9 +155,3 @@ public:
 
 #define TIMER_USEC(_X) (float(_X##_stop - _X##_start))
 #define TIMER_MSEC(_X) (float(_X##_stop - _X##_start) / 1000.0f)
-#else
-#define TIMER_START(_X)
-#define TIMER_STOP(_X)
-#define TIMER_USEC(_X)
-#define TIMER_MSEC(_X)
-#endif
