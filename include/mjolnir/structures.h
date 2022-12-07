@@ -3,6 +3,7 @@
 #define COMMON_STRUCTURE_H
 
 #include <algorithm>
+#include <vector>
 
 #include "iostream"
 
@@ -141,26 +142,21 @@ struct Box {
   }
 };
 
-struct BoxSimple {
-  float x1;
-  float y1;
-  float x2;
-  float y2;
-};
-
-struct landmarks {
+struct LandmarkPoint {
   float x;
   float y;
 };
 
 // detection supports multiple usages
 struct Detection {
-  // x1 y1 x2 y2
-  BoxSimple bbox;
+  float x1;
+  float y1;
+  float x2;
+  float y2;
   // float objectness;
-  landmarks marks[5];
-  int classId;
-  float prob;
+  std::vector<LandmarkPoint> landmarks;
+  int idx;
+  float score;
 };
 
 //#ifdef USE_OPENCV

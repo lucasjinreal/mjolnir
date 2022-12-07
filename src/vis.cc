@@ -1,4 +1,5 @@
 #include "vis.h"
+#include "structures.h"
 #include <opencv2/imgproc.hpp>
 
 namespace mjolnir {
@@ -420,9 +421,9 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
           cv::Point(pt1.x + padding_x, pt1.y - padding_y); // bottom_left
 
       cv::rectangle(
-          mask, cv::Point(pt1.x, pt1.y - text_size.height - 2*padding_y),
-          cv::Point(text_origin.x + text_size.width + padding_x, pt1.y), u_c, -1,
-          0);
+          mask, cv::Point(pt1.x, pt1.y - text_size.height - 2 * padding_y),
+          cv::Point(text_origin.x + text_size.width + padding_x, pt1.y), u_c,
+          -1, 0);
       cv::putText(img, label_text, text_origin, font, font_scale,
                   cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
     }
@@ -444,26 +445,26 @@ cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,
 
   for (int i = 0; i < detections.size(); ++i) {
     mjolnir::Detection det = detections[i];
-    const auto score = static_cast<float>(det.prob);
+    const auto score = static_cast<float>(det.score);
     if (score >= confidence_threshold) {
       cv::Point pt1, pt2;
       if (normalized) {
-        pt1.x = (img.cols * det.bbox.x1);
-        pt1.y = (img.rows * det.bbox.y1);
-        pt2.x = (img.cols * det.bbox.x2);
-        pt2.y = (img.rows * det.bbox.y2);
+        pt1.x = (img.cols * det.x1);
+        pt1.y = (img.rows * det.y1);
+        pt2.x = (img.cols * det.x2);
+        pt2.y = (img.rows * det.y2);
       } else {
-        pt1.x = det.bbox.x1;
-        pt1.y = det.bbox.y1;
-        pt2.x = det.bbox.x2;
-        pt2.y = det.bbox.y2;
+        pt1.x = det.x1;
+        pt1.y = det.y1;
+        pt2.x = det.x2;
+        pt2.y = det.y2;
       }
 
       cv::Scalar u_c;
       if (colors != nullptr) {
-        u_c = (*colors)[det.classId];
+        u_c = (*colors)[det.idx];
       } else {
-        u_c = gen_unique_color_cv(det.classId + 8);
+        u_c = gen_unique_color_cv(det.idx + 8);
       }
       cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_4, 0);
       if (enable_mask) {
@@ -475,7 +476,7 @@ cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,
       char score_str[256];
       snprintf(score_str, sizeof(score_str), "%.1f", score * 100);
       std::string label_text =
-          classes_names[det.classId] + " " + string(score_str) + "%";
+          classes_names[det.idx] + " " + string(score_str) + "%";
       int base_line = 4;
       cv::Point text_origin = cv::Point(pt1.x + 2, pt1.y - base_line);
       cv::Size text_size = cv::getTextSize(label_text, font, font_scale,
@@ -485,6 +486,95 @@ cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,
           cv::Point(text_origin.x + text_size.width + 2, pt1.y), u_c, -1, 0);
       cv::putText(img, label_text, text_origin, font, font_scale,
                   cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
+    }
+  }
+
+  if (enable_mask) {
+    cv::Mat combined;
+    cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
+    // maybe combine a mask img back later
+    return combined;
+  } else {
+    return img;
+  }
+}
+
+cv::Mat VisualizeDetectionsWithLandmark(
+    cv::Mat &img, vector<mjolnir::Detection> detections,
+    const vector<string> classes_names, const bool enable_mask,
+    const bool landmark_on, const vector<cv::Scalar> *colors,
+    const float line_thickness, const float font_scale, const bool fancy,
+    const float confidence_threshold, const bool normalized) {
+
+  // draw simple box with class names and landmarks, enable_mask not used here
+  const int font = cv::FONT_HERSHEY_SIMPLEX;
+  const int font_thickness = 1;
+
+  cv::Mat mask;
+  if (enable_mask) {
+    mask = cv::Mat::zeros(img.size(), CV_8UC3);
+  }
+
+  for (int i = 0; i < detections.size(); ++i) {
+    mjolnir::Detection det = detections[i];
+    const auto score = static_cast<float>(det.score);
+    if (score >= confidence_threshold) {
+      cv::Point pt1, pt2;
+      if (normalized) {
+        pt1.x = (img.cols * det.x1);
+        pt1.y = (img.rows * det.y1);
+        pt2.x = (img.cols * det.x2);
+        pt2.y = (img.rows * det.y2);
+      } else {
+        pt1.x = det.x1;
+        pt1.y = det.y1;
+        pt2.x = det.x2;
+        pt2.y = det.y2;
+      }
+
+      cv::Scalar u_c;
+      if (colors != nullptr) {
+        u_c = (*colors)[det.idx];
+      } else {
+        u_c = gen_unique_color_cv(det.idx + 8);
+      }
+      cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_4, 0);
+      if (enable_mask) {
+        cv::rectangle(mask, pt1, pt2, u_c, cv::FILLED, 0);
+      }
+
+      char score_str[256];
+      snprintf(score_str, sizeof(score_str), "%.1f", score);
+      std::string label_text = classes_names[det.idx] + " " + string(score_str);
+      const int padding_y = 4;
+      const int padding_x = 2;
+      int base_line = 0;
+      cv::Size text_size = cv::getTextSize(label_text, font, font_scale,
+                                           font_thickness, &base_line);
+      cv::Point text_origin =
+          cv::Point(pt1.x + padding_x, pt1.y - padding_y); // bottom_left
+
+      if (enable_mask) {
+        cv::rectangle(
+            mask, cv::Point(pt1.x, pt1.y - text_size.height - 2 * padding_y),
+            cv::Point(text_origin.x + text_size.width + padding_x, pt1.y), u_c,
+            -1, 0);
+      } else {
+        cv::rectangle(
+            img, cv::Point(pt1.x, pt1.y - text_size.height - 2 * padding_y),
+            cv::Point(text_origin.x + text_size.width + padding_x, pt1.y), u_c,
+            -1, 0);
+      }
+      cv::putText(img, label_text, text_origin, font, font_scale,
+                  cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
+
+      // draw landmark
+      if (landmark_on) {
+        for (int j = 0; j < det.landmarks.size(); ++j) {
+          LandmarkPoint p = det.landmarks[j];
+          cv::circle(img, cv::Point(p.x, p.y), 2, u_c, -1, 0);
+        }
+      }
     }
   }
 
@@ -512,27 +602,26 @@ cv::Mat VisualizeDetectionsWithOverrideColors(
 
   for (int i = 0; i < detections.size(); ++i) {
     mjolnir::Detection det = detections[i];
-    const auto score = static_cast<float>(det.prob);
+    const auto score = static_cast<float>(det.score);
     if (score >= confidence_threshold) {
       cv::Point pt1, pt2;
       if (normalized) {
-        pt1.x = (img.cols * det.bbox.x1);
-        pt1.y = (img.rows * det.bbox.y1);
-        pt2.x = (img.cols * det.bbox.x2);
-        pt2.y = (img.rows * det.bbox.y2);
+        pt1.x = (img.cols * det.x1);
+        pt1.y = (img.rows * det.y1);
+        pt2.x = (img.cols * det.x2);
+        pt2.y = (img.rows * det.y2);
       } else {
-        pt1.x = det.bbox.x1;
-        pt1.y = det.bbox.y1;
-        pt2.x = det.bbox.x2;
-        pt2.y = det.bbox.y2;
+        pt1.x = det.x1;
+        pt1.y = det.y1;
+        pt2.x = det.x2;
+        pt2.y = det.y2;
       }
 
       cv::Scalar u_c;
-      if ((override_colors != nullptr) &&
-          override_colors->count(det.classId) > 0) {
-        u_c = (*override_colors).at(det.classId);
+      if ((override_colors != nullptr) && override_colors->count(det.idx) > 0) {
+        u_c = (*override_colors).at(det.idx);
       } else {
-        u_c = gen_unique_color_cv(det.classId + 8);
+        u_c = gen_unique_color_cv(det.idx + 8);
       }
       cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_4, 0);
       if (enable_mask) {
@@ -544,7 +633,7 @@ cv::Mat VisualizeDetectionsWithOverrideColors(
       char score_str[256];
       snprintf(score_str, sizeof(score_str), "%.1f", score * 100);
       std::string label_text =
-          classes_names[det.classId] + " " + string(score_str) + "%";
+          classes_names[det.idx] + " " + string(score_str) + "%";
       int base_line = 4;
       cv::Point text_origin = cv::Point(pt1.x + 2, pt1.y - base_line);
       cv::Size text_size = cv::getTextSize(label_text, font, font_scale,
