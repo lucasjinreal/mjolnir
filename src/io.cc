@@ -1,7 +1,7 @@
-#include "file_io.h"
-#include "strs.h"
+#include "io.h"
 #include <dirent.h>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <valarray>
@@ -10,9 +10,11 @@
 struct stat info;
 typedef struct stat Stat;
 
+using std::cerr;
+using std::stringstream;
 using std::vector;
 
-namespace thor {
+namespace mjolnir {
 namespace os {
 
 bool exists(std::string p) {
@@ -119,7 +121,7 @@ vector<std::string> list_dirs(std::string path, bool full_path) {
   struct dirent *dirP;
   vector<std::string> files;
   if ((dp = opendir(&path[0u])) == NULL) {
-    cout << "dir not exist." << endl;
+    std::cout << "dir not exist." << std::endl;
   }
 
   while ((dirP = readdir(dp)) != NULL) {
@@ -150,7 +152,7 @@ vector<std::string> list_all(std::string path, bool full_path) {
   struct dirent *dirP;
   vector<std::string> files;
   if ((dp = opendir(&path[0u])) == NULL) {
-    cout << "dir not exist." << endl;
+    std::cout << "dir not exist." << std::endl;
   }
 
   while ((dirP = readdir(dp)) != NULL) {
@@ -193,9 +195,9 @@ std::string join(std::string path, std::string filename) {
 #endif
   vector<std::string> split_r;
 
-  thor::str_util::SplitString(path_string, split_r, joiner);
-  thor::str_util::StripString(split_r, "");
-  std::string path_s = thor::str_util::join_str(joiner, split_r);
+  mjolnir::str_util::SplitString(path_string, split_r, joiner);
+  mjolnir::str_util::StripString(split_r, "");
+  std::string path_s = mjolnir::str_util::join_str(joiner, split_r);
   std::string joined_path = path_string + joiner + filename;
   return joined_path;
 }
@@ -217,9 +219,9 @@ std::string parent_path(std::string path) {
   joiner = "/";
 #endif
   vector<std::string> split_r;
-  thor::str_util::SplitString(path, split_r, joiner);
+  mjolnir::str_util::SplitString(path, split_r, joiner);
   vector<std::string> split_drop_file_name(split_r.begin(), split_r.end() - 1);
-  std::string dir = thor::str_util::join_str(joiner, split_drop_file_name);
+  std::string dir = mjolnir::str_util::join_str(joiner, split_drop_file_name);
   return dir;
 }
 
@@ -245,12 +247,12 @@ std::string filename(std::string path) {
       if (found != std::string::npos) {
         // this is a path from unix
         vector<std::string> split_r;
-        thor::str_util::SplitString(path_str, split_r, joiner);
+        mjolnir::str_util::SplitString(path_str, split_r, joiner);
         return split_r[split_r.size() - 1];
       } else if (found_win != std::string::npos) {
         // this is path from windows
         vector<std::string> split_r;
-        thor::str_util::SplitString(path_str, split_r, joiner_win);
+        mjolnir::str_util::SplitString(path_str, split_r, joiner_win);
         return split_r[split_r.size() - 1];
       } else {
         // this is exactly a file
@@ -258,7 +260,7 @@ std::string filename(std::string path) {
       }
     }
   } else {
-    cout << "can not found path or file: " + path_str << endl;
+    std::cout << "can not found path or file: " + path_str << std::endl;
     return "";
   }
 }
@@ -323,7 +325,7 @@ std::string suffix(std::string path) {
   std::string p = std::string(path);
 
   vector<std::string> split_result;
-  thor::str_util::SplitString(path, split_result, ".");
+  mjolnir::str_util::SplitString(path, split_result, ".");
 
   if (split_result.size() > 1) {
     return split_result.back();
@@ -359,7 +361,7 @@ std::vector<std::string> glob(const std::string &pattern) {
   if (return_value != 0) {
     globfree(&glob_result);
     stringstream ss;
-    ss << "glob() failed with return_value " << return_value << endl;
+    ss << "glob() failed with return_value " << return_value << std::endl;
     throw std::runtime_error(ss.str());
   }
   // collect all the filenames into a std::list<std::std::string>
@@ -374,4 +376,4 @@ std::vector<std::string> glob(const std::string &pattern) {
 }
 
 } // namespace os
-} // namespace thor
+} // namespace mjolnir
