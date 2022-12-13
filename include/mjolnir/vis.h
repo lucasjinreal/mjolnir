@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <opencv2/core/types.hpp>
 #include <sys/stat.h>
 
 #include <cassert>
@@ -13,11 +14,11 @@
 #include <vector>
 
 #include "cmath"
+#include "io.h"
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/opencv.hpp"
 #include "type.h"
-#include "io.h"
 
 using cv::Mat;
 using cv::Point2f;
@@ -216,7 +217,8 @@ cv::Mat VisualizeDetectionsWithOverrideColors(
     const bool normalized = false);
 
 void VisTextInfos(cv::Mat &img, const vector<std::string> txts,
-                  const cv::Point start_pt = cv::Point(10, 20));
+                  cv::Scalar color = cv::Scalar(0, 0, 255),
+                  const cv::Point start_pt = cv::Point(10, 25));
 
 /////////////////// Visualize Lane ///////////////////////
 cv::Mat VisualizeLanes(cv::Mat &img, const vector<vector<cv::Point>> &lanes,
