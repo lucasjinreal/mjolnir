@@ -1,0 +1,3 @@
+[submodule "3rd/simpleocv"]
+	path = 3rd/simpleocv
+	url = https://github.com/jinfagang/simpleocv
