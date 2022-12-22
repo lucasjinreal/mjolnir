@@ -7,10 +7,14 @@
 
 #include "iostream"
 
+#ifdef USE_OPENCV
 #ifdef __APPLE__
 #include "opencv2/core.hpp"
 #else
 #include "opencv2/opencv.hpp"
+#endif
+#else
+#include "simpleocv.h"
 #endif
 
 using namespace std;
@@ -159,8 +163,8 @@ struct Detection {
   float score;
 };
 
-//#ifdef USE_OPENCV
-// human pose decalaration
+// #ifdef USE_OPENCV
+//  human pose decalaration
 struct HumanPose {
   std::vector<cv::Point2f> keypoints;
   float score;
@@ -180,7 +184,7 @@ struct HumanPose {
     vector<float> yss;
     for (auto const &p : keypoints) {
       // don't count absent points
-      if (p == absentKeypoint) {
+      if (p.x == absentKeypoint.x && p.y == absentKeypoint.y) {
         continue;
       }
       xss.push_back(p.x);
@@ -209,11 +213,11 @@ struct CameraIntrinsicParams {
   inline cv::Mat toCameraMatrix() {
     // convert to a cv::Mat matrix
     double camera_matrix_data[3][4] = {{fx, 0, cx}, {0, fy, cy}, {0, 0, 1}};
-    cv::Mat camera_mat(3, 3, CV_64F, camera_matrix_data);
+    cv::Mat camera_mat(3, 3, CV_32FC1, camera_matrix_data);
     return camera_mat;
   }
 };
-//#endif
+// #endif
 
 } // namespace mjolnir
 

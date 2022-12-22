@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
-# project(mjolnir)
+project(mjolnir)
+
+set(CMAKE_CXX_STANDARD 11)
 
 option(BUILD_STATIC "enable to build static mjolnir lib" ON)
 option(DEBUG "Enable debug mode, for develop" ON)
@@ -37,7 +39,8 @@ if(USE_OPENCV)
 else()
     message(STATUS "using simpleocv as opencv functionality!!")
     include_directories(3rd/simpleocv/include)
-    file(GLOB_RECURSE OCV_SRCS "src/*.cpp" "src/*.cc" "src/*.hpp" "src/*.h")
+    file(GLOB_RECURSE OCV_SRCS "3rd/simpleocv/src/*.cpp" "3rd/simpleocv/src/*.cc" "3rd/simpleocv/src/*.hpp" "3rd/simpleocv/src/*.h")
+    set(mjolnir_HEADERS ${mjolnir_HEADERS} 3rd/simpleocv/include/simpleocv.h)
 endif()
 
 
@@ -56,9 +59,11 @@ set_target_properties(
     PUBLIC_HEADER "${mjolnir_HEADERS}")
 target_include_directories(mjolnir PRIVATE .)
 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/libs/${CMAKE_SYSTEM_NAME})
+set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/include)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/libs/${CMAKE_SYSTEM_NAME})
+
 install(TARGETS mjolnir
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/mjolnir)
-install(FILES include/mjolnir.pc
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+        ARCHIVE DESTINATION ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
+        LIBRARY DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INCLUDE_OUTPUT_DIRECTORY}/mjolnir)

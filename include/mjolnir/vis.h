@@ -1,24 +1,29 @@
 
 #pragma once
 
-#include <opencv2/core/types.hpp>
-#include <sys/stat.h>
-
 #include <cassert>
 #include <cmath>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
+#include <sys/stat.h>
 #include <vector>
 
 #include "cmath"
 #include "io.h"
+#include "type.h"
+
+#ifdef USE_OPENCV
 #include "opencv2/core.hpp"
+#include "opencv2/core/types.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/opencv.hpp"
-#include "type.h"
+#else
+#include "simpleocv.h"
+#endif
 
 using cv::Mat;
 using cv::Point2f;
@@ -45,7 +50,11 @@ public:
   bool is_video_mode = false;
   bool ok = false;
   int crt = 0;
+
+#ifdef USE_OPENCV
   cv::VideoCapture cap;
+#endif
+
   IterMode mode;
 };
 
@@ -70,10 +79,14 @@ template <class Item> ImageSourceIter<Item>::ImageSourceIter(string source) {
         mjolnir::os::suffix(source) == "flv") {
       this->is_video_mode = true;
       this->mode = IterMode::VIDEO;
+#ifdef USE_OPENCV
       auto res = this->cap.open(source);
       if (!res) {
         std::cerr << "open video error! " << source << std::endl;
       }
+#else
+      printf("simpleocv don't support video mode! build with USE_OPENCV=ON!!");
+#endif
     } else {
       cv::Mat itm = cv::imread(source);
       this->mode = IterMode::IMAGE;
@@ -89,17 +102,21 @@ template <class Item> ImageSourceIter<Item>::ImageSourceIter(string source) {
 
 template <class Item> ImageSourceIter<Item>::~ImageSourceIter() {
   if (this->is_video_mode) {
+#ifdef USE_OPENCV
     this->cap.release();
+#endif
   }
 }
 
 template <class Item> Item ImageSourceIter<Item>::next() {
   if (this->mode == IterMode::VIDEO) {
     cv::Mat a;
+#ifdef USE_OPENCV
     this->cap >> a;
     if (a.empty()) {
       this->ok = false;
     }
+#endif
     return a;
   } else if (this->mode == IterMode::IMAGE) {
     // we have only 1 item
@@ -111,11 +128,21 @@ template <class Item> Item ImageSourceIter<Item>::next() {
     this->crt += 1;
     if (this->crt >= this->item_str_pool.size()) {
       this->ok = false;
+#ifdef USE_OPENCV
       return cv::Mat::zeros(4, 4, CV_32F);
+#else
+      cv::Mat b = cv::Mat(4, 4, CV_32FC1);
+      return b;
+#endif
     }
     return a;
   } else {
+#ifdef USE_OPENCV
     return cv::Mat::zeros(4, 4, CV_32F);
+#else
+    cv::Mat b = cv::Mat(4, 4, CV_32FC1);
+    return b;
+#endif
   }
 }
 

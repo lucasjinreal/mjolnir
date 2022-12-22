@@ -1,6 +1,11 @@
 #include "vis.h"
+#include "simpleocv.h"
 #include "type.h"
+#include <cassert>
+
+#ifdef USE_OPENCV
 #include <opencv2/imgproc.hpp>
+#endif
 
 namespace mjolnir {
 namespace vis {
@@ -134,6 +139,7 @@ cv::Scalar gen_unique_color_cv(int idx, bool is_track, double hue_step,
   return c;
 }
 
+#ifdef USE_OPENCV
 cv::Mat createAlpha(cv::Mat &src) {
   cv::Mat alpha = cv::Mat::zeros(src.rows, src.cols, CV_8UC1);
   cv::Mat gray = cv::Mat::zeros(src.rows, src.cols, CV_8UC1);
@@ -166,11 +172,12 @@ int addAlpha(cv::Mat &src, cv::Mat &dst, cv::Mat &alpha) {
   cv::merge(dstChannels, dst);
   return 0;
 }
+#endif
 
 ////////////// Vis functions ////////////
 void renderHumanPose(std::vector<HumanPose> &poses, cv::Mat &image) {
   // drawing HumanPoses on image
-  CV_Assert(image.type() == CV_8UC3);
+  assert(image.type() == CV_8UC3);
   const std::vector<cv::Scalar> colors = {
       cv::Scalar(255, 0, 0),   cv::Scalar(255, 85, 0),  cv::Scalar(255, 170, 0),
       cv::Scalar(255, 255, 0), cv::Scalar(170, 255, 0), cv::Scalar(85, 255, 0),
@@ -187,11 +194,12 @@ void renderHumanPose(std::vector<HumanPose> &poses, cv::Mat &image) {
   const cv::Point2f absentKeypoint(-1.0f, -1.0f);
   for (const auto &pose : poses) {
     // we only support 18 keypoints
-    CV_Assert(pose.keypoints.size() == 18);
+    assert(pose.keypoints.size() == 18);
 
     for (size_t keypointIdx = 0; keypointIdx < pose.keypoints.size();
          keypointIdx++) {
-      if (pose.keypoints[keypointIdx] != absentKeypoint) {
+      auto kpt = pose.keypoints[keypointIdx];
+      if (kpt != absentKeypoint) {
         cv::circle(image, pose.keypoints[keypointIdx], 3, colors[keypointIdx],
                    -1);
       }
@@ -216,22 +224,26 @@ void renderHumanPose(std::vector<HumanPose> &poses, cv::Mat &image) {
       int angle = static_cast<int>(std::atan2(difference.y, difference.x) *
                                    180 / CV_PI);
       std::vector<cv::Point> polygon;
+#ifdef USE_OPENCV
       cv::ellipse2Poly(cv::Point2d(meanX, meanY),
                        cv::Size2d(length / 2, stickWidth), angle, 0, 360, 1,
                        polygon);
       cv::fillConvexPoly(pane, polygon, colors[limbKeypointsId.second]);
+#endif
     }
     // for every pose, if pose has pose_id, means it is tracked
     if (pose.pose_id != -1) {
       // we draw this id
       Box b = pose.to_box();
       cv::putText(image, to_string(pose.pose_id), Point2f(b.xmin, b.ymin),
-                  cv::FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 255));
+                  cv::FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 0, 255));
       cv::rectangle(image, Point2f(b.xmin, b.ymin), Point2f(b.xmax, b.ymax),
                     Scalar(255, 0, 0), 1);
     }
   }
+#ifdef USE_OPENCV
   cv::addWeighted(image, 0.6, pane, 0.7, 0, image);
+#endif
 }
 
 void renderHumanPoseSimple(std::vector<HumanPose> &poses, cv::Mat &image) {
@@ -264,7 +276,7 @@ void renderHumanPoseSimple(std::vector<HumanPose> &poses, cv::Mat &image) {
       // we draw this id
       Box b = pose.to_box();
       cv::putText(image, to_string(pose.pose_id), Point2f(b.xmin, b.ymin),
-                  cv::FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 255, 255));
+                  cv::FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 255, 255));
       cv::rectangle(image, Point2f(b.xmin, b.ymin), Point2f(b.xmax, b.ymax),
                     Scalar(255, 255, 255), 1);
     }
@@ -300,7 +312,7 @@ void renderPoseCoco17(std::vector<HumanPose> &poses, cv::Mat &image) {
       // we draw this id
       Box b = pose.to_box();
       cv::putText(image, to_string(pose.pose_id), Point2f(b.xmin, b.ymin),
-                  cv::FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 255, 255));
+                  cv::FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 255, 255));
       cv::rectangle(image, Point2f(b.xmin, b.ymin), Point2f(b.xmax, b.ymax),
                     Scalar(255, 255, 255), 1);
     }
@@ -312,10 +324,10 @@ cv::Mat VisualizeDet(cv::Mat &img, vector<vector<float>> detections,
                      vector<string> classes_names, bool enable_mask,
                      float confidence_threshold, bool normalized) {
   // for visualize
-  const int font = cv::FONT_HERSHEY_TRIPLEX;
+  const int font = cv::FONT_HERSHEY_SIMPLEX;
   const float font_scale = 0.6;
   const int font_thickness = 2;
-  cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC3);
+  cv::Mat mask = cv::Mat(img);
   for (int i = 0; i < detections.size(); ++i) {
     const vector<float> &d = detections[i];
     // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
@@ -361,7 +373,9 @@ cv::Mat VisualizeDet(cv::Mat &img, vector<vector<float>> detections,
     }
   }
   cv::Mat combined;
+#ifdef USE_OPENCV
   cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
+#endif
   // maybe combine a mask img back later
   return combined;
 }
@@ -376,7 +390,7 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
   const int font_thickness = 1;
 
   cv::Mat mask;
-  mask = cv::Mat::zeros(img.size(), CV_8UC3);
+  mask = cv::Mat::zeros(img, CV_8UC3);
 
   for (int i = 0; i < detections.size(); ++i) {
     mjolnir::Box box = detections[i];
@@ -425,10 +439,12 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
           cv::Point(text_origin.x + text_size.width + padding_x, pt1.y), u_c,
           -1, 0);
       cv::putText(img, label_text, text_origin, font, font_scale,
-                  cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
+                  cv::Scalar(255, 255, 255), font_thickness);
     }
   }
+#ifdef USE_OPENCV
   cv::addWeighted(img, 0.9, mask, 0.9, 0.5, img);
+#endif
   return img;
 }
 
@@ -466,7 +482,7 @@ cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,
       } else {
         u_c = gen_unique_color_cv(det.idx + 8);
       }
-      cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_4, 0);
+      cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_AA, 0);
       if (enable_mask) {
         cv::rectangle(mask, pt1, pt2, u_c, cv::FILLED, 0);
       }
@@ -485,13 +501,15 @@ cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,
           mask, cv::Point(pt1.x, text_origin.y - text_size.height - base_line),
           cv::Point(text_origin.x + text_size.width + 2, pt1.y), u_c, -1, 0);
       cv::putText(img, label_text, text_origin, font, font_scale,
-                  cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
+                  cv::Scalar(255, 255, 255), font_thickness);
     }
   }
 
   if (enable_mask) {
     cv::Mat combined;
+#ifdef USE_OPENCV
     cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
+#endif
     // maybe combine a mask img back later
     return combined;
   } else {
@@ -538,7 +556,7 @@ cv::Mat VisualizeDetectionsWithLandmark(
       } else {
         u_c = gen_unique_color_cv(det.idx + 8);
       }
-      cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_4, 0);
+      cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_AA, 0);
       if (enable_mask) {
         cv::rectangle(mask, pt1, pt2, u_c, cv::FILLED, 0);
       }
@@ -566,23 +584,27 @@ cv::Mat VisualizeDetectionsWithLandmark(
             -1, 0);
       }
       cv::putText(img, label_text, text_origin, font, font_scale,
-                  cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
+                  cv::Scalar(255, 255, 255), font_thickness);
 
       // draw landmark
       if (landmark_on) {
         for (int j = 0; j < det.landmarks.size(); ++j) {
           LandmarkPoint p = det.landmarks[j];
-          cv::circle(img, cv::Point(p.x, p.y), 2, u_c, -1, 0);
+          cv::circle(img, cv::Point(p.x, p.y), 2, u_c, -1);
         }
       }
     }
   }
 
   if (enable_mask) {
+#ifdef USE_OPENCV
     cv::Mat combined;
     cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
     // maybe combine a mask img back later
     return combined;
+#else
+    return img;
+#endif
   } else {
     return img;
   }
@@ -595,7 +617,7 @@ cv::Mat VisualizeDetectionsWithOverrideColors(
     const float line_thickness, const bool with_text, const float font_scale,
     const bool fancy, const float confidence_threshold, const bool enable_mask,
     const bool normalized) {
-  const int font = cv::FONT_HERSHEY_COMPLEX;
+  const int font = cv::FONT_HERSHEY_SIMPLEX;
   const int font_thickness = 1;
 
   cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC3);
@@ -623,7 +645,7 @@ cv::Mat VisualizeDetectionsWithOverrideColors(
       } else {
         u_c = gen_unique_color_cv(det.idx + 8);
       }
-      cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_4, 0);
+      cv::rectangle(img, pt1, pt2, u_c, line_thickness, 8);
       if (enable_mask) {
         cv::rectangle(mask, pt1, pt2, u_c, cv::FILLED, 0);
       }
@@ -643,16 +665,20 @@ cv::Mat VisualizeDetectionsWithOverrideColors(
           cv::Point(text_origin.x + text_size.width + 2, pt1.y), u_c, -1, 0);
       if (with_text) {
         cv::putText(img, label_text, text_origin, font, font_scale,
-                    cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
+                    cv::Scalar(255, 255, 255), font_thickness);
       }
     }
   }
 
   if (enable_mask) {
+#ifdef USE_OPENCV
     cv::Mat combined;
     cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
     // maybe combine a mask img back later
     return combined;
+#else
+    return img;
+#endif
   } else {
     return img;
   }
@@ -703,10 +729,19 @@ cv::Mat VisualizeDetectionStyleDetectron2(
                   cv::Scalar(255, 255, 255), font_thickness);
     }
   }
-  cv::Mat combined;
-  cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
-  // maybe combine a mask img back later
-  return combined;
+
+  if (enable_mask) {
+#ifdef USE_OPENCV
+    cv::Mat combined;
+    cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
+    // maybe combine a mask img back later
+    return combined;
+#else
+    return img;
+#endif
+  } else {
+    return img;
+  }
 }
 
 cv::Mat VisualizeDetectionStyleDetectron2(cv::Mat &img,
@@ -756,17 +791,26 @@ cv::Mat VisualizeDetectionStyleDetectron2(cv::Mat &img,
                   cv::Scalar(255, 255, 255), font_thickness);
     }
   }
-  cv::Mat combined;
-  cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
-  // maybe combine a mask img back later
-  return combined;
+
+  if (enable_mask) {
+#ifdef USE_OPENCV
+    cv::Mat combined;
+    cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
+    // maybe combine a mask img back later
+    return combined;
+#else
+    return img;
+#endif
+  } else {
+    return img;
+  }
 }
 
 void VisTextInfos(cv::Mat &img, const vector<std::string> txts,
                   cv::Scalar color, const cv::Point start_pt) {
   for (int i = 0; i < txts.size(); ++i) {
     cv::putText(img, txts[i], cv::Point(start_pt.x, start_pt.y + i * 25),
-                cv::FONT_HERSHEY_SIMPLEX, 0.58, color, 2, cv::LINE_AA);
+                cv::FONT_HERSHEY_SIMPLEX, 0.58, color, 2);
   }
 }
 /////////////////////////// Visualize Lanes ////////////////////
@@ -784,14 +828,20 @@ cv::Mat VisualizeLanes(cv::Mat &img, const vector<vector<cv::Point>> &lanes,
     } else {
       u_c = gen_unique_color_cv(i + 6);
     }
-    // draw line
+// draw line
+#ifdef USE_OPENCV
     cv::polylines(mask, lanes[i], false, u_c, line_thickness, cv::LINE_AA);
+#endif
   }
 
+#ifdef USE_OPENCV
   cv::Mat combined;
-  cv::addWeighted(img, 0.8, mask, alpha, 0.6, combined);
+  cv::addWeighted(img, 0.8, mask, 0.6, 0.6, combined);
   // maybe combine a mask img back later
   return combined;
+#else
+  return img;
+#endif
 }
 
 } // namespace vis
@@ -804,12 +854,14 @@ static const int map_[7][3] = {{0, 0, 0},   {128, 0, 0},   {0, 128, 0},
                                {0, 0, 128}, {128, 128, 0}, {128, 0, 128},
                                {0, 128, 0}};
 
+#ifdef USE_OPENCV
+
 float *Normalize(cv::Mat img) {
   // cv::Mat image(img.rows, img.cols, CV_32FC3);
   float *data;
   data = (float *)calloc(img.rows * img.cols * 3, sizeof(float));
   for (int c = 0; c < 3; ++c) {
-    for (int i = 0; i < img.rows; ++i) { //获取第i行首像素指针
+    for (int i = 0; i < img.rows; ++i) { // 获取第i行首像素指针
       cv::Vec3b *p1 = img.ptr<cv::Vec3b>(i);
       // cv::Vec3b *p1 = image.ptr<cv::Vec3b>(i);
       for (int j = 0; j < img.cols; ++j) {
@@ -837,11 +889,6 @@ float *HWC2CHW(cv::Mat img, const float kMeans[3], const float kStds[3]) {
   }
   return data;
 }
-
-// float *HWC2CHW_fast(cv::Mat img, const float kMeans[3], const float kStds[3])
-// {
-//   // haven't implemented yet
-// }
 
 cv::Mat read2mat(float *prob, cv::Mat out) {
   for (int i = 0; i < 128; ++i) {
@@ -877,6 +924,7 @@ cv::Mat map2threeunchar(cv::Mat real_out, cv::Mat real_out_) {
   }
   return real_out_;
 }
+#endif
 
 cv::Mat resizeAlongShortest(cv::Mat img, int target_w, int target_h) {
   cv::Mat intermediateImg, outputImg;
@@ -901,8 +949,10 @@ cv::Mat resizeAlongShortest(cv::Mat img, int target_w, int target_h) {
   bottom = delta_h - floor(delta_h / 2);
   left = floor(delta_w / 2);
   right = delta_w - floor(delta_w / 2);
+#ifdef USE_OPENCV
   cv::copyMakeBorder(intermediateImg, outputImg, top, bottom, left, right,
                      cv::BORDER_CONSTANT);
+#endif
   return outputImg;
 }
 
