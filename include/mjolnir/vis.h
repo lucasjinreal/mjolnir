@@ -186,6 +186,10 @@ void hsv2rgb(mjolnir::vis::RGBA &rgba, float h, float s, float v);
 cv::Scalar gen_unique_color_cv(int idx, bool is_track = false,
                                double hue_step = 0.41, float alpha = 0.7);
 
+inline cv::Scalar gen_random_color_sim(int idx = 0) {
+  return cv::Scalar(255, 0, 255);
+}
+
 cv::Mat createAlpha(cv::Mat &src);
 
 int addAlpha(cv::Mat &src, cv::Mat &dst, cv::Mat &alpha);

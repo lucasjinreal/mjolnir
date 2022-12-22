@@ -2,6 +2,7 @@
 #include "simpleocv.h"
 #include "type.h"
 #include <cassert>
+#include <cstdio>
 
 #ifdef USE_OPENCV
 #include <opencv2/imgproc.hpp>
@@ -17,12 +18,12 @@ RGBA gen_unique_color(int idx, bool is_track, double hue_step, float alpha) {
     int track_size = 1. / hue_step;
     idx = idx % track_size;
   }
+
   float h = idx * hue_step - (int)(idx * hue_step);
   double v = 1.0 - (int(idx * hue_step) % 6) / 5.;
-
+  // printf("h: %f, v: %f idx %d hue_step: %f \n", h, v, idx, hue_step);
   RGBA rgba;
   hsv2rgb(rgba, h, 1, v);
-
   rgba.r = 255 * rgba.r;
   rgba.g = 255 * rgba.g;
   rgba.b = 255 * rgba.b;
@@ -135,7 +136,11 @@ void hsv2rgb(float &r, float &g, float &b, float h, float s, float v) {
 cv::Scalar gen_unique_color_cv(int idx, bool is_track, double hue_step,
                                float alpha) {
   RGBA cr = gen_unique_color(idx, is_track, hue_step, alpha);
-  cv::Scalar c(cr.r, cr.g, cr.b);
+  // cr.print();
+  int r = cr.r;
+  int g = cr.g;
+  int b = cr.b;
+  cv::Scalar c(r, g, b);
   return c;
 }
 
@@ -480,8 +485,10 @@ cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,
       if (colors != nullptr) {
         u_c = (*colors)[det.idx];
       } else {
-        u_c = gen_unique_color_cv(det.idx + 8);
+        u_c = gen_unique_color_cv(det.idx);
       }
+      // printf("%d %d %d \n", u_c[0], u_c[1], u_c[2]);
+
       cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_AA, 0);
       if (enable_mask) {
         cv::rectangle(mask, pt1, pt2, u_c, cv::FILLED, 0);
