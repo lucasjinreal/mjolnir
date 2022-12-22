@@ -41,13 +41,14 @@ else()
     include_directories(3rd/simpleocv/include)
     file(GLOB_RECURSE OCV_SRCS "3rd/simpleocv/src/*.cpp" "3rd/simpleocv/src/*.cc" "3rd/simpleocv/src/*.hpp" "3rd/simpleocv/src/*.h")
     set(mjolnir_HEADERS ${mjolnir_HEADERS} 3rd/simpleocv/include/simpleocv.h)
+    set(mjolnir_SRCS ${mjolnir_SRCS} ${OCV_SRCS})
 endif()
 
 
 if (BUILD_STATIC)
-    add_library(mjolnir STATIC ${mjolnir_SRCS} ${mjolnir_HEADERS} ${OCV_SRCS})
+    add_library(mjolnir STATIC ${mjolnir_SRCS} ${mjolnir_HEADERS})
 else()
-    add_library(mjolnir SHARED ${mjolnir_SRCS} ${mjolnir_HEADERS} ${OCV_SRCS})
+    add_library(mjolnir SHARED ${mjolnir_SRCS} ${mjolnir_HEADERS})
 endif()
 
 target_link_libraries(mjolnir ${OpenCV_LIBS})
