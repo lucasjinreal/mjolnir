@@ -39,9 +39,10 @@ if(USE_OPENCV)
 else()
     message(STATUS "using simpleocv as opencv functionality!!")
     include_directories(3rd/simpleocv/include)
+    set(mjolnir_INCLUDE 3rd/simpleocv/include PARENT_SCOPE)
     file(GLOB_RECURSE OCV_SRCS "3rd/simpleocv/src/*.cpp" "3rd/simpleocv/src/*.cc" "3rd/simpleocv/src/*.hpp" "3rd/simpleocv/src/*.h")
-    set(mjolnir_HEADERS ${mjolnir_HEADERS} 3rd/simpleocv/include/simpleocv.h)
-    set(mjolnir_SRCS ${mjolnir_SRCS} ${OCV_SRCS})
+    set(mjolnir_HEADERS ${mjolnir_HEADERS} ${PROJECT_SOURCE_DIR}/3rd/simpleocv/include/simpleocv.h PARENT_SCOPE)
+    set(mjolnir_SRCS ${mjolnir_SRCS} ${OCV_SRCS} PARENT_SCOPE)
 endif()
 
 
