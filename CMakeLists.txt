@@ -16,8 +16,8 @@ if (APPLE)
     include_directories(/opt/homebrew/include/)
 endif()
 
-file(GLOB_RECURSE mjolnir_SRCS "src/*.cpp" "src/*.cc")
-file(GLOB_RECURSE mjolnir_HEADERS "include/*.h" "include/*.hpp")
+file(GLOB_RECURSE mjolnir_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
+file(GLOB_RECURSE mjolnir_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 
 if(USE_OPENCV)
     message(STATUS "you are using opencv, this will disable simpleocv!!!")
@@ -36,6 +36,8 @@ if(USE_OPENCV)
         set(USE_OPENCV OFF)
         message(STATUS "Can not found OpenCV, turned it off.")
     endif ()
+    set(mjolnir_HEADERS ${mjolnir_HEADERS} PARENT_SCOPE)
+    set(mjolnir_SRCS ${mjolnir_SRCS} PARENT_SCOPE)
 else()
     message(STATUS "using simpleocv as opencv functionality!!")
     include_directories(3rd/simpleocv/include)
@@ -52,8 +54,11 @@ else()
     add_library(mjolnir SHARED ${mjolnir_SRCS} ${mjolnir_HEADERS})
 endif()
 
-target_link_libraries(mjolnir ${OpenCV_LIBS})
-target_compile_options(mjolnir PUBLIC -fno-rtti)
+if (USE_OPENCV)
+    target_link_libraries(mjolnir ${OpenCV_LIBS})
+else()
+    target_compile_options(mjolnir PUBLIC -fno-rtti)
+endif()
 
 set_target_properties(
     mjolnir

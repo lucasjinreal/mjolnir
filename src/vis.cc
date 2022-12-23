@@ -1,11 +1,12 @@
 #include "vis.h"
-#include "simpleocv.h"
 #include "type.h"
 #include <cassert>
 #include <cstdio>
 
 #ifdef USE_OPENCV
 #include <opencv2/imgproc.hpp>
+#else
+#include "simpleocv.h"
 #endif
 
 namespace mjolnir {
@@ -395,7 +396,11 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
   const int font_thickness = 1;
 
   cv::Mat mask;
+ #ifdef USE_OPENCV
+  mask = cv::Mat::zeros(img.size(), CV_8UC3);
+ #else
   mask = cv::Mat::zeros(img, CV_8UC3);
+ #endif
 
   for (int i = 0; i < detections.size(); ++i) {
     mjolnir::Box box = detections[i];
