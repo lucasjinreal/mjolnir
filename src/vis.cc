@@ -396,11 +396,11 @@ cv::Mat VisualizeBox(cv::Mat &img, vector<mjolnir::Box> detections,
   const int font_thickness = 1;
 
   cv::Mat mask;
- #ifdef USE_OPENCV
+#ifdef USE_OPENCV
   mask = cv::Mat::zeros(img.size(), CV_8UC3);
- #else
+#else
   mask = cv::Mat::zeros(img, CV_8UC3);
- #endif
+#endif
 
   for (int i = 0; i < detections.size(); ++i) {
     mjolnir::Box box = detections[i];
@@ -492,6 +492,9 @@ cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,
       } else {
         u_c = gen_unique_color_cv(det.idx);
       }
+      if (img.c == 4) {
+        u_c[3] = 255;
+      }
       // printf("%d %d %d \n", u_c[0], u_c[1], u_c[2]);
 
       cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_AA, 0);
@@ -567,6 +570,9 @@ cv::Mat VisualizeDetectionsWithLandmark(
         u_c = (*colors)[det.idx];
       } else {
         u_c = gen_unique_color_cv(det.idx + 8);
+      }
+      if (img.c == 4) {
+        u_c[3] = 255;
       }
       cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_AA, 0);
       if (enable_mask) {
@@ -820,6 +826,9 @@ cv::Mat VisualizeDetectionStyleDetectron2(cv::Mat &img,
 
 void VisTextInfos(cv::Mat &img, const vector<std::string> txts,
                   cv::Scalar color, const cv::Point start_pt) {
+  if (img.c == 4) {
+    color[3] = 255;
+  }
   for (int i = 0; i < txts.size(); ++i) {
     cv::putText(img, txts[i], cv::Point(start_pt.x, start_pt.y + i * 25),
                 cv::FONT_HERSHEY_SIMPLEX, 0.58, color, 2);
