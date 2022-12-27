@@ -492,7 +492,7 @@ cv::Mat VisualizeDetections(cv::Mat &img, vector<mjolnir::Detection> detections,
       } else {
         u_c = gen_unique_color_cv(det.idx);
       }
-      if (img.c == 4) {
+      if (img.channels() == 4) {
         u_c[3] = 255;
       }
       // printf("%d %d %d \n", u_c[0], u_c[1], u_c[2]);
@@ -571,7 +571,7 @@ cv::Mat VisualizeDetectionsWithLandmark(
       } else {
         u_c = gen_unique_color_cv(det.idx + 8);
       }
-      if (img.c == 4) {
+      if (img.channels() == 4) {
         u_c[3] = 255;
       }
       cv::rectangle(img, pt1, pt2, u_c, line_thickness, cv::LINE_AA, 0);
@@ -826,7 +826,7 @@ cv::Mat VisualizeDetectionStyleDetectron2(cv::Mat &img,
 
 void VisTextInfos(cv::Mat &img, const vector<std::string> txts,
                   cv::Scalar color, const cv::Point start_pt) {
-  if (img.c == 4) {
+  if (img.channels() == 4) {
     color[3] = 255;
   }
   for (int i = 0; i < txts.size(); ++i) {
