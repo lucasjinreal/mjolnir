@@ -1,5 +1,12 @@
 #include "io.h"
+#ifdef _MSC_VER
+#include "./dirent.h"
+#include <direct.h>
+
+#else
 #include <dirent.h>
+#endif
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -74,7 +81,12 @@ vector<std::string> list_files(std::string path, bool full_path) {
     // in xfs file system, d_type always be NULL
     if (!dirP->d_type) {
       std::string f_name = path + std::string("/") + std::string(dirP->d_name);
+#ifdef _MSC_VER
+// TODO: fix MSVC
+// _stat(f_name.c_str(), &file_info);
+#else
       lstat(f_name.c_str(), &file_info);
+#endif
       if (S_ISDIR(file_info.st_mode)) {
         continue;
       } else {
@@ -274,9 +286,14 @@ int do_mkdir(std::string path, mode_t mode) {
   Stat st;
   int status = 0;
   if (stat(&path[0u], &st) != 0) {
-    /* Directory does not exist. EEXIST for race condition */
+/* Directory does not exist. EEXIST for race condition */
+#ifdef _MSC_VER
+    if (_mkdir(&path[0u]) != 0 && errno != EEXIST)
+      status = -1;
+#else
     if (mkdir(&path[0u], mode) != 0 && errno != EEXIST)
       status = -1;
+#endif
   } else if (!S_ISDIR(st.st_mode)) {
     errno = ENOTDIR;
     status = -1;
@@ -295,11 +312,19 @@ int makedirs(std::string path, mode_t mode) {
     std::string newPath = "./" + std::string(path.begin(), newIter);
 
     if (stat(newPath.c_str(), &st) != 0) {
+#ifdef _MSC_VER
+      if (_mkdir(newPath.c_str()) != 0 && errno != EEXIST) {
+        std::cout << "cannot create folder [" << newPath
+                  << "] : " << strerror(errno) << std::endl;
+        return -1;
+      }
+#else
       if (mkdir(newPath.c_str(), mode) != 0 && errno != EEXIST) {
         std::cout << "cannot create folder [" << newPath
                   << "] : " << strerror(errno) << std::endl;
         return -1;
       }
+#endif
     } else if (!S_ISDIR(st.st_mode)) {
       errno = ENOTDIR;
       std::cout << "path [" << newPath << "] not a dir " << std::endl;
@@ -351,6 +376,12 @@ std::string GetAbsolutePath(const std::string &prefix,
   return prefix + "/" + relative_path;
 }
 
+#ifdef _MSC_VER
+std::vector<std::string> glob(const std::string &pattern) {
+  std::cout << "not avaiable on windows!!\n";
+  return {""};
+}
+#else
 std::vector<std::string> glob(const std::string &pattern) {
   // glob struct resides on the stack
   glob_t glob_result;
@@ -374,6 +405,7 @@ std::vector<std::string> glob(const std::string &pattern) {
   // done
   return filenames;
 }
+#endif
 
 } // namespace os
 } // namespace mjolnir

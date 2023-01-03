@@ -2,13 +2,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <iomanip>
-#include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string>
-#include <sys/time.h>
 #include <sys/types.h>
-#include <time.h>
+
 
 #define LOG_INFOF(...)                                                         \
   do {                                                                         \
@@ -52,22 +52,33 @@ static nullstream dummyStream;
 #define CHECK_GE(x, y) _CHECK_BINARY(x, >=, y)
 #define _CHECK_BINARY(x, cmp, y) CHECK(x cmp y) << x << "!" #cmp << y << " "
 
+inline std::tm localtime_xp(std::time_t timer) {
+  std::tm bt{};
+#if defined(__unix__)
+  localtime_r(&timer, &bt);
+#elif defined(_MSC_VER)
+  localtime_s(&bt, &timer);
+#else
+  static std::mutex mtx;
+  std::lock_guard<std::mutex> lock(mtx);
+  bt = *std::localtime(&timer);
+#endif
+  return bt;
+}
+
 using namespace std;
 inline void gen_log(std::ostream &log_stream_, const char *file,
                     const char *func, int lineno, const char *level,
                     const int kMaxLen = 20) {
   const int len = strlen(file);
   std::string time_str;
-  struct tm tm_time; // Time of creation of LogMessage
-  time_t timestamp = time(NULL);
-  localtime_r(&timestamp, &tm_time);
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
+
+  std::time_t timestamp = std::time(nullptr);
+  auto tm_time = localtime_xp(timestamp);
 
   log_stream_ << level << ' ' << 1 + tm_time.tm_mon << '/' << tm_time.tm_mday
               << ' ' << tm_time.tm_hour << ':' << tm_time.tm_min << ':'
-              << std::setw(2) << tm_time.tm_sec << '.' << std::setw(3)
-              << tv.tv_usec / 1000 << " ";
+              << std::setw(2) << tm_time.tm_sec << " ";
 
   if (len > kMaxLen) {
     log_stream_ << "..." << file + len - kMaxLen << " " << func << ":" << lineno
@@ -136,7 +147,6 @@ public:
     abort();
   }
 };
-
 #define TIMER_START(_X)                                                        \
   uint64_t _X##_start;                                                         \
   do {                                                                         \
