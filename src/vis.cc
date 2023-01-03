@@ -2,6 +2,7 @@
 #include "type.h"
 #include <cassert>
 #include <cstdio>
+#include <string>
 
 #ifdef USE_OPENCV
 #include <opencv2/imgproc.hpp>
@@ -834,6 +835,19 @@ void VisTextInfos(cv::Mat &img, const vector<std::string> txts,
                 cv::FONT_HERSHEY_SIMPLEX, 0.58, color, 2);
   }
 }
+
+void VisProgressBar(cv::Mat &img, const std::string &label, const float value,
+                    cv::Scalar color, const cv::Point start_pt,
+                    const float length, const float thickness) {
+  cv::putText(img, label, start_pt, cv::FONT_HERSHEY_SIMPLEX, 0.58, color, 2);
+  cv::line(img, cv::Point(start_pt.x + 25, start_pt.y),
+           cv::Point(start_pt.x + 25 + length, start_pt.y), Scalar(255, 0, 0),
+           thickness);
+  cv::putText(img, std::to_string(value),
+              cv::Point(start_pt.x + 25 + length + 5, start_pt.y),
+              cv::FONT_HERSHEY_SIMPLEX, 0.58, color, 2);
+}
+
 /////////////////////////// Visualize Lanes ////////////////////
 cv::Mat VisualizeLanes(cv::Mat &img, const vector<vector<cv::Point>> &lanes,
                        const vector<cv::Scalar> *colors,

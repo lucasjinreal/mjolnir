@@ -251,6 +251,11 @@ void VisTextInfos(cv::Mat &img, const vector<std::string> txts,
                   cv::Scalar color = cv::Scalar(0, 0, 255),
                   const cv::Point start_pt = cv::Point(10, 25));
 
+void VisProgressBar(cv::Mat &img, const std::string &label, const float value,
+                    cv::Scalar color = cv::Scalar(0, 0, 255),
+                    const cv::Point start_pt = cv::Point(100, 25),
+                    const float length = 12, const float thickness = 2);
+
 /////////////////// Visualize Lane ///////////////////////
 cv::Mat VisualizeLanes(cv::Mat &img, const vector<vector<cv::Point>> &lanes,
                        const vector<cv::Scalar> *colors = NULL,
