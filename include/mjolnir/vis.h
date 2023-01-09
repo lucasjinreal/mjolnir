@@ -234,7 +234,7 @@ cv::Mat VisualizeDetectionsWithLandmark(
     cv::Mat &img, vector<mjolnir::Detection> detections,
     const vector<string> classes_names, const bool enable_mask = false,
     const bool landmark_on = true, const vector<cv::Scalar> *colors = NULL,
-    const float line_thickness = 1, const float font_scale = 0.38,
+    const float line_thickness = 1, const int circle_size = 2, const float font_scale = 0.38,
     const bool fancy = false, const float confidence_threshold = 0.02,
     const bool normalized = false);
 

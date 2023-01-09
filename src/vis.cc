@@ -537,7 +537,7 @@ cv::Mat VisualizeDetectionsWithLandmark(
     cv::Mat &img, vector<mjolnir::Detection> detections,
     const vector<string> classes_names, const bool enable_mask,
     const bool landmark_on, const vector<cv::Scalar> *colors,
-    const float line_thickness, const float font_scale, const bool fancy,
+    const float line_thickness, const int circle_size, const float font_scale, const bool fancy,
     const float confidence_threshold, const bool normalized) {
 
   // draw simple box with class names and landmarks, enable_mask not used here
@@ -609,7 +609,7 @@ cv::Mat VisualizeDetectionsWithLandmark(
       if (landmark_on) {
         for (int j = 0; j < det.landmarks.size(); ++j) {
           LandmarkPoint p = det.landmarks[j];
-          cv::circle(img, cv::Point(p.x, p.y), 2, u_c, -1);
+          cv::circle(img, cv::Point(p.x, p.y), circle_size, u_c, -1);
         }
       }
     }
