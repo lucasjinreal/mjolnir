@@ -149,6 +149,7 @@ struct Box {
 struct LandmarkPoint {
   float x;
   float y;
+  float z;
 };
 
 // detection supports multiple usages
