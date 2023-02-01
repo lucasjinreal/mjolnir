@@ -2,18 +2,16 @@
 #ifndef COMMON_STRUCTURE_H
 #define COMMON_STRUCTURE_H
 
+#include "iostream"
 #include <algorithm>
 #include <vector>
 
-#include "iostream"
-
 #ifdef USE_OPENCV
-#ifdef __APPLE__
-#include "opencv2/core.hpp"
-#else
 #include "opencv2/opencv.hpp"
+#define DISABLE_SIMPLE_OCV
 #endif
-#else
+
+#if not defined(USE_OPENCV) && not defined(DISABLE_SIMPLE_OCV)
 #include "simpleocv.h"
 #endif
 
@@ -201,24 +199,6 @@ struct HumanPose {
     return b;
   }
 };
-
-// todo: HumanFaces
-
-// camera intrinsics decalaration
-struct CameraIntrinsicParams {
-  double fx, fy, cx, cy, scale;
-  inline void print() {
-    std::cout << "fx: " << fx << " fy: " << fy << " cx: " << cx << " cy:" << cy
-              << " scale: " << scale << endl;
-  };
-  inline cv::Mat toCameraMatrix() {
-    // convert to a cv::Mat matrix
-    double camera_matrix_data[3][4] = {{fx, 0, cx}, {0, fy, cy}, {0, 0, 1}};
-    cv::Mat camera_mat(3, 3, CV_32FC1, camera_matrix_data);
-    return camera_mat;
-  }
-};
-// #endif
 
 } // namespace mjolnir
 
