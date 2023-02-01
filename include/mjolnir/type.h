@@ -1,19 +1,14 @@
-
-#ifndef COMMON_STRUCTURE_H
-#define COMMON_STRUCTURE_H
+#pragma once
 
 #include "iostream"
 #include <algorithm>
 #include <vector>
 
-#ifdef USE_OPENCV
+#if defined (USE_OPENCV) || defined (_WIN32)
 #include "opencv2/opencv.hpp"
-#define DISABLE_SIMPLE_OCV
-#endif
-
-#if not defined(USE_OPENCV) && not defined(DISABLE_SIMPLE_OCV)
+#else
 #include "simpleocv.h"
-#endif
+#endif 
 
 using namespace std;
 
@@ -201,5 +196,3 @@ struct HumanPose {
 };
 
 } // namespace mjolnir
-
-#endif // COMMON_STRUCTURE_H
