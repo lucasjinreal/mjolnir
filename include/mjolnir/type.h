@@ -4,11 +4,12 @@
 #include <algorithm>
 #include <vector>
 
-#if defined (USE_OPENCV) || defined (_WIN32)
+#if defined(USE_OPENCV) || defined(_WIN32)
 #include "opencv2/opencv.hpp"
 #else
 #include "simpleocv.h"
-#endif 
+#endif
+
 
 using namespace std;
 
